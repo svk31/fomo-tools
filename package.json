@@ -1,0 +1,22 @@
+{
+  "name": "fomo-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "monitor": "nodemon --harmony index.js monitor",
+    "stats": "node index.js stats",
+    "stats-dev": "nodemon index.js stats"
+  },
+  "author": "svk31",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.22.2",
+    "web3-eth": "^1.0.0-beta.35",
+    "web3-utils": "^1.0.0-beta.35"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.3"
+  }
+}
