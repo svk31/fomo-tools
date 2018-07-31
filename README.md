@@ -1,9 +1,15 @@
 To get stats:
 
-`npm run stats` // produces stats for FOMO3D Soon
-`npm run stats long` // produces stats for FOMO3D Long
+**FOMO3D Soon**:
+`npm run stats`
+
+**FOMO3D Long**:
+`npm run stats long`
 
 To monitor current games in the terminal:
 
-`npm run monitor` // monitors FOMO3D Soon
-`npm run monitor long` // monitors FOMO3D Long
+**FOMO3D Soon**:
+`npm run monitor`
+
+**FOMO3D Long**:
+`npm run monitor long`
