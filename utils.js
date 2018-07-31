@@ -82,9 +82,9 @@ function getTimeDifference(t1, t2) {
     return {
         deltaSeconds,
         days: Math.floor(days),
-        hours: Math.floor(hours) + "h",
+        hours: Math.floor(hours),
         minutes: Math.floor(minutes) + "min",
-        seconds: seconds.toFixed(1) + "s"
+        seconds: seconds
     }
 }
 

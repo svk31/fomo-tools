@@ -1,5 +1,6 @@
 {
     "ws_infura": "wss://mainnet.infura.io/_ws",
     "local_ws_provider": "ws://localhost:8546",
-    "local_http_provider": "http://localhost:8545"
+    "local_http_provider": "http://localhost:8545",
+    "blockPollFrequency": 5000
 }

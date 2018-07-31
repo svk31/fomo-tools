@@ -8,19 +8,19 @@ const {getTimeDifference,
     getPlayer,
     getPlayerId
 } = require("./utils");
+const config = require("./config");
 
 async function monitorGame(name) {
     console.log("\n*******************************************")
     console.log("\n    Monitoring", contracts[name].name);
     console.log("\n*******************************************\n")
 
-    let _round = 0;
     api.connect();
 
     let contract = api.getContract(name);
     // console.log("contract", Object.keys(contract.methods));
 
-    let previousTime, previousBlockTime, currentRoundInfo;
+    let previousTime, previousBlock, currentRoundInfo;
     function printInfo(parsedRound, force) {
         if (!parsedRound && !force) return;
         let now = moment();
@@ -28,13 +28,13 @@ async function monitorGame(name) {
         let remaining = getTimeDifference(now, parsedRound.end);
 
         if (remaining.deltaSeconds !== previousTime) {
-            let blockDelta = !!previousBlockTime ? getTimeDifference(previousBlockTime, now) : null;
+            let blockDelta = !!previousBlock ? getTimeDifference(previousBlock.time, now) : null;
             console.log(
                 "#" + parsedRound.roundNumber,
-                "| Round duration:", duration.days ? duration.days + "days" : "", duration.hours, duration.minutes, duration.seconds,
+                "| Round duration:", (duration.days ? duration.days + "days " : "") + duration.hours + "h", duration.minutes, (duration.seconds < 10 ? " " : "") + duration.seconds.toFixed(1) + "s",
                 "| Pot value:", parsedRound.pot + " ETH",
-                "| Counter:", remaining.minutes, remaining.seconds,
-                "| Time since last block", !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? blockDelta.seconds : null,
+                "| Counter:", (remaining.hours ? remaining.hours + "h " : "") + remaining.minutes, (remaining.seconds < 10 ? " " : "") + remaining.seconds.toFixed(1) + "s",
+                "| Time since last block", !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + blockDelta.seconds.toFixed(1) + "s") : null,
                 "| Current winner:", parsedRound.playerName || parsedRound.playerAddress
             )
             previousTime = remaining.deltaSeconds;
@@ -44,13 +44,25 @@ async function monitorGame(name) {
         if (remaining.deltaSeconds < 30) {
             poll(1000);
         } else if (remaining.deltaSeconds < 60) {
-            poll(5000);
+            poll(2000);
         } else {
             poll();
         }
     }
 
-    getRoundInfo(contract).then(updateRound);
+    async function getLatestBlock() {
+        let block = await api.getBlock("latest");
+        let b = {
+            time: moment(parseInt(block.timestamp, 10) * 1000),
+            number: block.number,
+            received: moment()
+        }
+        if (!previousBlock || previousBlock && previousBlock.number < b.number) {
+            if (previousBlock) console.log("Manually polled a new block we weren't notified about, the subscription probably failed to register. Try restarting the script"); // this shouldn't happen but regularly does...
+            previousBlock = b;
+            getRoundInfo(contract).then(updateRound)
+        }
+    }
 
     async function updateRound(r, print = true) {
         let pid = await getPlayerId(contract, r.playerAddress);
@@ -66,6 +78,11 @@ async function monitorGame(name) {
         printInfo(r, print);
     }
 
+    /* Manually poll for the latest block every 5s */
+    setInterval(getLatestBlock, config.blockPollFrequency);
+    await getLatestBlock();
+
+    /* Spit out info every x seconds */
     let interval;
     function poll(timer = 10000) {
         clearInterval(interval);
@@ -84,15 +101,27 @@ async function monitorGame(name) {
     }).on("error", (error) => {
         console.log("onEndTx error:", error);
     });
-    api.sub("newBlockHeaders", (err, data) => {
-        if (err) return;
+
+    function onData(data) {
         let blockTime = moment(parseInt(data.timestamp, 10) * 1000);
         let now = moment();
         // console.log("*** New block:", data.number, blockTime, "Received", ((now.valueOf() - blockTime.valueOf()) / 1000).toFixed(2) + "s after block timestamp ***");
-        getRoundInfo(contract).then((r) => {
-            previousBlockTime = blockTime;
-            updateRound(r);
-        }).catch(err => {});
-    })
+        let b = {
+            time: blockTime,
+            number: data.number,
+            received: moment()
+        }
+        if (!previousBlock || previousBlock && previousBlock.number < b.number) {
+            previousBlock = b;
+        } else {
+            // console.log("Notified of a new block which is older than or the same as the current head block", b, "\n", previousBlock);  // this shouldn't happen but regularly does...
+        }
+        getRoundInfo(contract).then(updateRound).catch(err => {});
+    }
+
+    function onError(err) {
+        console.log("onError:", err);
+    }
+    api.sub("newBlockHeaders", onData, onError);
 }
 module.exports = monitorGame;

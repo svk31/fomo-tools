@@ -1,7 +1,7 @@
 const Eth = require("web3-eth");
 const config = require("./config");
 const contracts = require("./contracts");
-let eth, subs = {};
+let eth;
 
 function connect() {
     // eth = new Eth(Eth.givenProvider || config.local_http_provider);
@@ -25,8 +25,8 @@ function getContract(name) {
     return new ethWs.Contract(contracts[name].abi, contracts[name].address);
 }
 
-function sub(subscription, callback) {
-    subs[subscription] = ethWs.subscribe(subscription, callback)
+function sub(subscription, onData, onError) {
+    ethWs.subscribe(subscription).on("data", onData).on("error", onError);
 }
 
 function clearSubs() {
