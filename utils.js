@@ -18,8 +18,22 @@ function parseCurrentRound(round) {
     }
 }
 
+let playerCache = {};
 function getPlayer(contract, pid) {
-    return contract.methods.plyr_(pid).call();
+    if (playerCache[pid]) return Promise.resolve(playerCache[pid]);
+    return contract.methods.plyr_(pid).call().then(player => {
+        playerCache[pid] = player;
+        return player;
+    })
+}
+
+let pidCache = {};
+function getPlayerId(contract, address) {
+    if (pidCache[address]) return Promise.resolve(pidCache[address]);
+    return contract.methods.pIDxAddr_(address).call().then(pid => {
+        pidCache[address] = pid;
+        return pid;
+    });
 }
 
 function parsePlayer(player) {
@@ -91,5 +105,6 @@ module.exports = {
     getTimeDifference,
     getPlayer,
     parsePlayer,
-    getRoundInfo
+    getRoundInfo,
+    getPlayerId
 };
