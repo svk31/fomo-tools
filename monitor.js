@@ -43,9 +43,9 @@ async function monitorGame(name) {
         }
 
         /* Speed up the print intervals when the remaining time is below 1 minute */
-        if (remaining.deltaSeconds < (name === "short" ? 30 : 300)) {
+        if (remaining.deltaSeconds < (name === "quick" ? 30 : 300)) {
             poll(1000);
-        } else if (remaining.deltaSeconds < (name === "short" ? 60 : 600)) {
+        } else if (remaining.deltaSeconds < (name === "quick" ? 60 : 600)) {
             poll(2000);
         } else {
             poll();
