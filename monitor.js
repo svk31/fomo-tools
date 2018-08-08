@@ -6,7 +6,8 @@ const {getTimeDifference,
     getRoundInfo,
     parsePlayer,
     getPlayer,
-    getPlayerId
+    getPlayerId,
+    fromWei
 } = require("./utils");
 const config = require("./config");
 
@@ -31,19 +32,20 @@ async function monitorGame(name) {
             let blockDelta = !!previousBlock ? getTimeDifference(previousBlock.time, now) : null;
             console.log(
                 "#" + parsedRound.roundNumber,
-                "| Round duration:", (duration.days ? duration.days + "days " : "") + duration.hours + "h", duration.minutes, (duration.seconds < 10 ? " " : "") + duration.seconds.toFixed(1) + "s",
-                "| Pot value:", parsedRound.pot + " ETH",
+                "| Duration:", (duration.days ? duration.days + "days " : "") + duration.hours + "h", duration.minutes, (duration.seconds < 10 ? " " : "") + duration.seconds.toFixed(1) + "s",
+                "| Pot:", parsedRound.pot + " ETH",
                 "| Counter:", (remaining.hours ? remaining.hours + "h " : "") + remaining.minutes, (remaining.seconds < 10 ? " " : "") + remaining.seconds.toFixed(1) + "s",
-                "| Time since last block", !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + blockDelta.seconds.toFixed(1) + "s") : null,
+                "| Last block", !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + blockDelta.seconds.toFixed(1) + "s") : null,
+                "| Team:", parsedRound.team,
                 "| Current winner:", parsedRound.playerName || parsedRound.playerAddress
             )
             previousTime = remaining.deltaSeconds;
         }
 
         /* Speed up the print intervals when the remaining time is below 1 minute */
-        if (remaining.deltaSeconds < 30) {
+        if (remaining.deltaSeconds < (name === "short" ? 30 : 300)) {
             poll(1000);
-        } else if (remaining.deltaSeconds < 60) {
+        } else if (remaining.deltaSeconds < (name === "short" ? 60 : 600)) {
             poll(2000);
         } else {
             poll();
@@ -69,7 +71,7 @@ async function monitorGame(name) {
         let player = parsePlayer(await getPlayer(contract, pid));
         r.playerName = player.name;
         r.playerAddress = player.address;
-        if (currentRoundInfo && r.round !== currentRoundInfo.round) {
+        if (currentRoundInfo && r.roundNumber !== currentRoundInfo.roundNumber) {
             console.log("\n\n*******************************************")
             console.log("\n\n    New Round Starting Now");
             console.log("\n\n*******************************************\n\n")
@@ -95,8 +97,26 @@ async function monitorGame(name) {
 
 
     contract.events.allEvents()
-    .on("data", (event) => {
-        // console.log("onEndTx event: \n", event);
+    .on("data", async (e) => {
+        switch(e.event) {
+            case "onEndTx":
+                let pid = await getPlayerId(contract, e.returnValues.playerAddress);
+                let player = parsePlayer(await getPlayer(contract, pid));
+                let keysBought = parseFloat(fromWei(e.returnValues.keysBought));
+                let ethIn = parseFloat(fromWei(e.returnValues.ethIn));
+                // console.log("keysBought:", keysBought, "ethIn", ethIn, "currentRoundInfo", currentRoundInfo);
+                let timeAdded = parseInt(keysBought) * 30;
+                if (parseInt(keysBought, 10) === 0) {
+                    // micro key
+                    console.log(`-${(currentRoundInfo.roundNumber).replace(/./,"-")}-- Micro key | ${ethIn.toFixed(4)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
+                } else {
+                    console.log(`+${(currentRoundInfo.roundNumber).replace(/./,"+")}++  Full key | ${ethIn.toFixed(4)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
+                }
+                break;
+
+            default:
+                break;
+        }
         getRoundInfo(contract).then(r => updateRound(r, false)).catch(err => {});
     }).on("error", (error) => {
         console.log("onEndTx error:", error);

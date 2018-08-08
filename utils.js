@@ -1,6 +1,6 @@
 const moment = require("moment");
 const utils = require("web3-utils");
-const {teams} = require("./constants");
+const {teams, distributions} = require("./constants");
 
 function parseCurrentRound(round) {
     let end =  moment(parseInt(round[3], 10) * 1000);
@@ -14,7 +14,8 @@ function parseCurrentRound(round) {
         pot: parseFloat(utils.fromWei(round[5])).toFixed(4),
         team: teams[round[6][0]],
         playerAddress: round[7],
-        duration: getTimeDifference(start, end)
+        duration: getTimeDifference(start, end),
+        p3d: !round[6][0] ? 0 : parseFloat(utils.fromWei(round[5])) * distributions[round[6][0]].p3d
     }
 }
 
@@ -34,6 +35,10 @@ function getPlayerId(contract, address) {
         pidCache[address] = pid;
         return pid;
     });
+}
+
+function fromWei(number) {
+    return utils.fromWei(number);
 }
 
 function parsePlayer(player) {
@@ -106,5 +111,6 @@ module.exports = {
     getPlayer,
     parsePlayer,
     getRoundInfo,
-    getPlayerId
+    getPlayerId,
+    fromWei
 };

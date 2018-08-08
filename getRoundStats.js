@@ -40,7 +40,7 @@ async function getRoundStats(name) {
     if (rounds.length)
         fs.open(`stats/roundStats_${name}.csv`, 'w', (err, fd) => {
                     if (err) throw err;
-                    let contents = "Round,Start,End, Duration (minutes), ICO, Key Count, Pot (ETH), Team, Player, Average Duration, Average Pot\n";
+                    let contents = "Round,Start,End, Duration (minutes), ICO, Key Count, Pot (ETH), Team, Player, Average Duration, Average Pot, P3D Payout\n";
 
                     rounds.forEach(round => {
                         let line = [
@@ -55,7 +55,8 @@ async function getRoundStats(name) {
                             round.playerName,
                             round.playerAddress,
                             round.averageDuration.toFixed(2),
-                            round.averagePot.toFixed(2)
+                            round.averagePot.toFixed(2),
+                            round.p3d                            
                         ]
                         contents += line.join(',') + "\n";
                     });
