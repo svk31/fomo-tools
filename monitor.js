@@ -35,7 +35,7 @@ async function monitorGame(name) {
                 "| Duration:", (duration.days ? duration.days + "days " : "") + duration.hours + "h", duration.minutes, (duration.seconds < 10 ? " " : "") + duration.seconds.toFixed(1) + "s",
                 "| Pot:", parsedRound.pot + " ETH",
                 "| Counter:", (remaining.hours ? remaining.hours + "h " : "") + remaining.minutes, (remaining.seconds < 10 ? " " : "") + remaining.seconds.toFixed(1) + "s",
-                "| Last block", !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + blockDelta.seconds.toFixed(1) + "s") : null,
+                "| Last block", previousBlock.number, !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + blockDelta.seconds.toFixed(1) + "s ago") : null,
                 "| Team:", parsedRound.team,
                 "| Current winner:", parsedRound.playerName || parsedRound.playerAddress
             )
@@ -108,9 +108,9 @@ async function monitorGame(name) {
                 let timeAdded = parseInt(keysBought) * 30;
                 if (parseInt(keysBought, 10) === 0) {
                     // micro key
-                    console.log(`-${(currentRoundInfo.roundNumber).replace(/./,"-")}-- Micro key | ${ethIn.toFixed(4)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
+                    console.log(`-${(currentRoundInfo.roundNumber).replace(/./,"-")}-- Micro key | ${ethIn.toFixed(6)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
                 } else {
-                    console.log(`+${(currentRoundInfo.roundNumber).replace(/./,"+")}++  Full key | ${ethIn.toFixed(4)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
+                    console.log(`+${(currentRoundInfo.roundNumber).replace(/./,"+")}++  Full key | ${ethIn.toFixed(6)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
                 }
                 break;
 
