@@ -5,7 +5,7 @@ let eth;
 
 function connect() {
     // eth = new Eth(Eth.givenProvider || config.local_http_provider);
-    ethWs = new Eth(Eth.givenProvider || config.local_ws_provider);
+    ethWs = new Eth(Eth.givenProvider || config.default_ws);
 }
 
 function getBlock(block_num) {

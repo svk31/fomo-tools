@@ -1,3 +1,11 @@
+## Setup
+
+First, run `npm install`
+
+Then, copy `config.example.json` to `config.json`. If you have a local eth node running you can set default_ws to be that node, if not just leave it as is and use Infura's node.
+
+## Usage
+
 To get stats:
 
 **FOMO3D Soon**:
