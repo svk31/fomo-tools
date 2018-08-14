@@ -28,14 +28,16 @@ async function monitorGame(name) {
         let duration = getTimeDifference(parsedRound.start, now);
         let remaining = getTimeDifference(now, parsedRound.end);
 
+        let blockString = (previousBlock.number || 1).toString();
+        blockString = "#" + (blockString.substr(blockString.length - 3, blockString.length));
         if (remaining.deltaSeconds !== previousTime) {
             let blockDelta = !!previousBlock ? getTimeDifference(previousBlock.time, now) : null;
             console.log(
                 "#" + parsedRound.roundNumber,
-                "| Duration:", (duration.days ? duration.days + "days " : "") + duration.hours + "h", duration.minutes, (duration.seconds < 10 ? " " : "") + duration.seconds.toFixed(1) + "s",
+                "| Duration:", (duration.days ? duration.days + "days " : "") + duration.hours + "h", duration.minutes, (duration.seconds < 10 ? " " : "") + Math.floor(duration.seconds) + "s",
                 "| Pot:", parsedRound.pot + " ETH",
-                "| Counter:", (remaining.hours ? remaining.hours + "h " : "") + remaining.minutes, (remaining.seconds < 10 ? " " : "") + remaining.seconds.toFixed(1) + "s",
-                "| Last block", previousBlock.number, !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + blockDelta.seconds.toFixed(1) + "s ago") : null,
+                "| Counter:", (remaining.hours ? remaining.hours + "h " : "") + remaining.minutes, (remaining.seconds < 10 ? " " : "") + Math.floor(remaining.seconds) + "s",
+                "|", blockString, !!blockDelta ? (blockDelta.minutes) : null, !!blockDelta ? ((blockDelta.seconds < 10 ? " " : "") + Math.floor(blockDelta.seconds) + "s ago") : null,
                 "| Team:", parsedRound.team,
                 "| Current winner:", parsedRound.playerName || parsedRound.playerAddress
             )
@@ -110,7 +112,7 @@ async function monitorGame(name) {
                     // micro key
                     console.log(`-${(currentRoundInfo.roundNumber).replace(/./,"-")}-- Micro key | ${ethIn.toFixed(6)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
                 } else {
-                    console.log(`+${(currentRoundInfo.roundNumber).replace(/./,"+")}++  Full key | ${ethIn.toFixed(6)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
+                    console.log(`+${(currentRoundInfo.roundNumber).replace(/./,"+")}+  Full key | ${ethIn.toFixed(6)} ETH | ${keysBought.toFixed(3)} keys | +${parseInt(keysBought, 10) * 30}s | ${player.name || player.address}`);
                 }
                 break;
 
